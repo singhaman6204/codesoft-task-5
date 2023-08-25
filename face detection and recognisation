@@ -1,0 +1,29 @@
+# Load and process an image
+image = cv2.imread('test_image.jpg')
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Perform face detection
+faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+for (x, y, w, h) in faces:
+    face_roi = image[y:y+h, x:x+w]
+    
+    # Perform face recognition
+    face_embedding = face_recognizer.compute_face_descriptor(face_roi)
+    
+    # Compare with known embeddings
+    distances = np.linalg.norm(known_embeddings - face_embedding, axis=1)
+    min_distance_index = np.argmin(distances)
+    min_distance = distances[min_distance_index]
+    
+    # Define a threshold for recognition
+    threshold = 0.6
+    if min_distance <= threshold:
+        recognized_person = labels[min_distance_index]
+        cv2.putText(image, recognized_person, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    
+    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+cv2.imshow('Face Recognition', image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
